@@ -3,34 +3,27 @@ var canvas;
 var ctx;
 
 //그림 사이즈
-var ocaCanvas = { "width": 1920, "height": 1080 };
-var browser={};
-//------------------------------------------------------------------------
-var sprite;
-var imageInfor;
 
-var testBackgroundImage = new Image();
-testBackgroundImage.src="background.png";
-var testImage = new Image();
-testImage.src="test.png";
-// backgroundImage.src="background.png";
-// backgroundImage.addEventListener("load", function(){
-//   ctx.drawImage( backgroundImage , 0, 0, canvas.width, canvas.height);
-// },false);
+//var browser={};
+//------------------------------------------------------------------------
+//이미지 정리 {background:{img:new Image,x:0,y:0,width:640,height:480},{}}
+
+
+
+
+
 //-----------------------------------------------------------------------
-//canvas 생성
 window.onload = function(){
+
   canvas = document.createElement("canvas");
   canvas.setAttribute("id","canvas");
   ctx = canvas.getContext("2d");
-  //이미지 로드 컴플리트 함수를 넣어야함.
+  imageCreate(imageOrder);
 
-  browserResize();
   document.body.appendChild(canvas);
 
-
 }
-
+//----------------------------------------------------------------------
 //최대 공약수
 function gcd(a, b) {
   var gcd = 1;
@@ -41,96 +34,173 @@ function gcd(a, b) {
     }
     return gcd;
 }
-
+//----------------------------------------------------------------------
 //이미지 비율 계산
 function imageRatio(e){
-  var ratioGcd = gcd(e.width,e.height);
-  var ratio1 = e.width/ratioGcd;
-  var ratio2 = e.height/ratioGcd;
-  var ratioMulti
-  if(ratio1>ratio2){
-    ratioMulti = ratio2/ratio1;
-    return [1,ratioMulti];
-  }else if(ratio2>ratio1){
-    ratioMulti = ratio1/ratio2;
-    return [2,ratioMulti];
-  }else{
-    ratioMulti = 1;
-    return [0,ratioMulti];
-  }
-}
+  var stat = {};
+  var ratioGcd;
+  var ratioWidth;
+  var ratioHeight;
 
-//브라우저 크기에 따른 캔버스의 비율
+  var ratioXgcd;
+  var ratioXw;
+  var ratioX;
+  var ratioYgcd;
+  var ratioY;
+  var ratioYh;
+
+  var ratioWwgcd;
+  var ratioWw;
+  var ratioWww;
+  var ratioYygcd;
+  var ratioYy;
+  var ratioYyy;
+
+
+  var ratioCompare;
+
+  var widthR;
+  var heightR;
+  var xR;
+  var yR;
+  var wwR;
+  var yyR;
+
+  for(var key = 0 in e){
+    if(key=="background"){
+      ratioGcd = gcd(e[key].width,e[key].height);
+      ratioWidth = e[key].width/ratioGcd;
+      ratioHeight = e[key].height/ratioGcd;
+      ratioCompare = compare(ratioWidth,ratioHeight);
+      widthR = ratioHeight/ratioWidth;
+      heightR = ratioWidth/ratioHeight;
+      stat[key] = {
+        "ratioWidth":ratioWidth,
+        "ratioHeight":ratioHeight,
+        "ratioCompare":ratioCompare,
+        "widthR":widthR,
+        "heightR":heightR
+      };
+    }else{
+      ratioXgcd =  gcd(e["background"].width, e[key].x);
+      ratioX = e[key].x/ratioXgcd;
+      ratioXw = e["background"].width/ratioXgcd;
+      xR = ratioX/ratioXw;
+      ratioYgcd = gcd(e["background"].height,e[key].y);
+      ratioY = e[key].y/ratioYgcd;
+      ratioYh = e["background"].height/ratioYgcd;
+      yR = ratioY/ratioYh;
+
+      //console.log(e["background"].width+" : "+e[key].x+" = "+ratioX);
+      ratioWwgcd = gcd(e["background"].width,e[key].width);
+
+      ratioWw = e[key].width/ratioWwgcd;
+      ratioWww = e["background"].width/ratioWwgcd;
+      wwR = ratioWw/ratioWww;
+
+      ratioYygcd = gcd(e["background"].height,e[key].height);
+
+      ratioYy = e[key].height/ratioYygcd;
+      ratioYyy = e["background"].height/ratioYygcd;
+      yyR = ratioYy/ratioYyy;
+
+
+      ratioGcd = gcd(e[key].height,e[key].width);
+      ratioWidth = e[key].width/ratioGcd;
+      ratioHeight = e[key].height/ratioGcd;
+      ratioCompare = compare(ratioWidth,ratioHeight);
+      widthR = ratioHeight/ratioWidth;
+      heightR = ratioWidth/ratioHeight;
+
+      stat[key] = {
+        "ratioWidth":ratioWidth,
+        "ratioHeight":ratioHeight,
+        "ratioCompare":ratioCompare,
+        "widthR":widthR,
+        "heightR":heightR,
+        "xR":xR,
+        "yR":yR,
+        "wwR":wwR,
+        "yyR":yyR
+      };
+
+    }
+  }
+  //비교 연산 가로 1 세로 2 같음 0 리턴한다.
+  function compare(a,b){
+      if(a>b){
+        return 1;
+      }else if(b>a){
+        return 2;
+      }else{
+        return 0;
+      }
+  }
+  return stat;
+}
+//----------------------------------------------------------------------
+//브라우저 크기에 따른 캔버스의 비율 수정은 여기서.
 function browserResize(e){
+  var stat = imageRatio(imageOrder);
+  var browserWidth = window.innerWidth;
+  var browserHeight = window.innerHeight;
+  for(var key = 0 in stat){
+    if(key=="background"){
+      if(stat[key].ratioCompare == 1){
+        imageOrder[key].width = browserWidth;
+        imageOrder[key].height = imageOrder[key].width*stat[key].widthR;
+        canvas.width = imageOrder[key].width
+        canvas.height = imageOrder[key].height
+      }else if(stat[key].ratioCompare == 2){
+        imageOrder[key].width = imageOrder[key].height*stat[key].heightR;
+        imageOrder[key].height = browserHeight;
+        canvas.width = imageOrder[key].width
+        canvas.height = imageOrder[key].height
+      }else{
+        imageOrder[key].width = browserWidth;
+        imageOrder[key].height = browserWidth;
+        canvas.width = imageOrder[key].width
+        canvas.height = imageOrder[key].height
+      }
+    }else{
+      //그림 부분
+      imageOrder[key].x = imageOrder["background"].width*stat[key].xR;
+      imageOrder[key].y = imageOrder["background"].height*stat[key].yR;
+      imageOrder[key].width = imageOrder["background"].width*stat[key].wwR;
+      imageOrder[key].height = imageOrder["background"].height*stat[key].yyR;
+    }
+  }
 
-  browser.width = window.innerWidth;
-  browser.height = window.innerHeight;
-  var size = imageRatio(ocaCanvas);
-  if(size[0] == 1){
-    canvas.width = browser.width;
-    canvas.height = browser.width*size[1];
-    //이미지 출력 함수를 넣어야함.
-    ctx.drawImage( testBackgroundImage , 0, 0, canvas.width, canvas.height);
-    ctx.drawImage( testImage , 0, 0, 800, 1109);
-  }
-  else if(size[0] == 2){
-    canvas.width = browser.height*size[1];;
-    canvas.height = browser.height
-  }
-  else{
-    canvas.width = browser.width;
-    canvas.height = browser.width;
-  }
-
+  imagePrint(imageOrder);
 }
 
-
-
-
-//위치 퍼센트 변환
-function positionToPercent(e){
-
-}
+//----------------------------------------------------------------------
 //이미지 생성
 function imageCreate(e){
+  var loaded = 0;
+  function onload(){
+    loaded++
+    if(loaded == Object.keys(e).length){
+      browserResize();
+    }
+  }
+  for(var key = 0 in e){
 
+    e[key].img = new Image();
+    e[key].img.addEventListener("load",onload);
+    e[key].img.src = key+".png";
+  }
 }
+//----------------------------------------------------------------------
 //이미지 출력
 function imagePrint(e){
-
+  for(var key = 0 in e){
+    ctx.drawImage(e[key].img , e[key].x, e[key].y, e[key].width, e[key].height);
+  }
 }
 
+//----------------------------------------------------------------------
+//충돌
 function collision(){
 
 }
-
-
-
-/*var imageObjects = [];
-
-function loadImages(images, onComplete) {
-
-    var loaded = 0;
-
-    function onLoad() {
-        loaded++;
-        if (loaded == images.length) {
-            onComplete();
-        }
-    }
-
-    for (var i = 0; i < images.length; i++) {
-        var img = new Image();
-        img.addEventListener("load", onLoad);
-        img.src = images[i];
-        imageObjects.push(img);
-    }
-}
-
-
-function init() {
-    alert("start game");
-    // use imageObjects which will contain loaded images
-}
-
-loadImages(["egg.png", "baby.png", "adult.png", "ultimate.png"], init);*/
